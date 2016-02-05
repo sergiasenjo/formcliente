@@ -26,9 +26,10 @@ function addTag(tag, id) {
     return tag;
 }
 
-function createOption() {
+function createOption(object) {
     var option = document.createElement("option");
-    option.appendChild(document.createTextNode("Prueba"));
+    option.appendChild(document.createTextNode(object.valor));
+    option.className = object.clase;
     return option;
 }
 
@@ -70,8 +71,8 @@ function createLi(item) {
 
 function createOption(item) {
     var option = document.createElement("option");
-    option.className = item.clase;
-    option.appendChild(document.createTextNode(item.valor));
+    option.value = item;
+    option.appendChild(document.createTextNode(item));
     return option;
 }
 
@@ -93,7 +94,11 @@ function reloadOptions() {
             x.remove();
         });
     }
-    ns.OBJECTS.forEach(function(x) {
+    ns.OBJECTS.map(function(x) {
+        return x.clase;
+    }).filter(function(item, index, array) {
+        return array.indexOf(item) === index;
+    }).forEach(function(x) {
         $("select").appendChild(createOption(x));
     });
 }
@@ -109,7 +114,7 @@ function addClass() {
 
 function removeClass() {
     var objects = ns.OBJECTS.filter(function(x) {
-        return x.valor != $("select").value;
+        return x.clase != $("select").value;
     });
     ns.OBJECTS = objects;
     reloadList();
