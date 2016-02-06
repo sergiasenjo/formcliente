@@ -1,5 +1,23 @@
+/*jslint
+    browser: true, node: true, unparam: true */
+
+/*global
+   document, MutationObserver
+*/
+
+'use strict';
+
 function $(id) {
     return document.getElementById(id);
+}
+
+function AllObjects() {
+    this.objects = [];
+}
+
+function OneObject(clase, valor) {
+    this.clase = clase;
+    this.valor = valor;
 }
 
 var ns = (function (ns) {
@@ -16,32 +34,23 @@ var ns = (function (ns) {
     ns.RED = "red";
     ns.SECTION_IDS = [ns.SECTION_1, ns.SECTION_2, ns.SECTION_3];
     ns.ADDSECTION_INPUTS = [ns.VALUE, ns.CLASS];
-    ns.AllObjects = new AllObjects;
+    ns.AllObjects = new AllObjects();
     return ns;
 }({}));
 
-function AllObjects() {
-    this.objects = [];
-}
-
-function OneObject(clase, valor) {
-    this.clase = clase;
-    this.valor = valor;
-}
-
-AllObjects.prototype.insertData = function(claseValue, valorValue) {
+AllObjects.prototype.insertData = function (claseValue, valorValue) {
     this.objects.push(new OneObject(claseValue, valorValue));
-}
+};
 
-AllObjects.prototype.removeData = function() {
-    this.objects = ns.AllObjects.objects.filter(function(x) {
-        return x.clase != $("select").value;
+AllObjects.prototype.removeData = function (clase) {
+    this.objects = ns.AllObjects.objects.filter(function (x) {
+        return x.clase !== clase;
     });
-}
+};
 
 AllObjects.prototype.arrayUnique = function (attribute) {
     return this.objects.map(function (x) {
-        return (attribute === ns.CLASS) ? x.clase : x.valor;      
+        return (attribute === ns.CLASS) ? x.clase : x.valor;
     }).filter(function (element, index, array) {
         return array.indexOf(element) === index;
     });
@@ -55,9 +64,9 @@ AllObjects.prototype.numObjects = function (clase, valor) {
 };
 
 function deleteChilds(section) {
-    Array.from(section.children).forEach(function(x){
+    Array.from(section.children).forEach(function (x) {
         x.remove();
-    })
+    });
 }
 
 function addTag(tag, id) {
@@ -85,32 +94,32 @@ function reloadTable() {
         tr = addTag("tr", ""),
         td = addTag("td", ""),
         numobj;
+    tr.appendChild(td);
+    table.appendChild(tr);
+    ns.AllObjects.arrayUnique(ns.CLASS).forEach(function (x) {
+        td = addTag("td", "");
+        td.appendChild(document.createTextNode(x));
         tr.appendChild(td);
+    });
+    ns.AllObjects.arrayUnique(ns.VALUE).forEach(function (valor) {
+        tr = addTag("tr", "");
+        td = addTag("td", "");
+        td.appendChild(document.createTextNode(valor));
+        tr.appendChild(td);
+        ns.AllObjects.arrayUnique(ns.CLASS).forEach(function (clase) {
+            td = addTag("td", "");
+            numobj = ns.AllObjects.numObjects(clase, valor);
+            td.appendChild(document.createTextNode(numobj));
+            if (numobj < 2) {
+                td.style.color = ns.GREEN;
+            } else if (numobj > 2) {
+                td.style.color = ns.RED;
+            }
+            tr.appendChild(td);
+        });
         table.appendChild(tr);
-        ns.AllObjects.arrayUnique(ns.CLASS).forEach(function (x) {
-            td = addTag("td", "");
-            td.appendChild(document.createTextNode(x));
-            tr.appendChild(td);
-        });
-        ns.AllObjects.arrayUnique(ns.VALUE).forEach(function (valor) {
-            tr = addTag("tr", "");
-            td = addTag("td", "");
-            td.appendChild(document.createTextNode(valor));
-            tr.appendChild(td);
-            ns.AllObjects.arrayUnique(ns.CLASS).forEach(function (clase) {
-                td = addTag("td", "");
-                numobj = ns.AllObjects.numObjects(clase, valor);
-                td.appendChild(document.createTextNode(numobj));
-                if (numobj < 2) {
-                    td.style.color = ns.GREEN;
-                }else if (numobj > 2) {
-                    td.style.color = ns.RED;
-                }
-                tr.appendChild(td);
-            });
-            table.appendChild(tr);
-        });
-        $("sectionTable").appendChild(table);    
+    });
+    $("sectionTable").appendChild(table);
 }
 
 function createLi(item) {
@@ -130,33 +139,37 @@ function createOption(item) {
 function reloadList() {
     deleteChilds($(ns.SECTION_2));
     $(ns.SECTION_2).appendChild(addTag("ul", "list"));
-    ns.AllObjects.objects.forEach(function(x) {
+    ns.AllObjects.objects.forEach(function (x) {
         $("list").appendChild(createLi(x));
     });
 }
 
 function reloadOptions() {
     deleteChilds($("select"));
-    ns.AllObjects.arrayUnique(ns.CLASS).forEach(function(x) {
+    ns.AllObjects.arrayUnique(ns.CLASS).forEach(function (x) {
         $("select").appendChild(createOption(x));
     });
 }
 
 function update() {
-    ($(ns.TABLE).textContent === ns.TABLE) ? reloadList() : reloadTable();
+    if ($(ns.TABLE).textContent === ns.TABLE) {
+        reloadList();
+    } else {
+        reloadTable();
+    }
 }
 
 function addItem() {
     var claseValue = $(ns.CLASS).value,
         valorValue = $(ns.VALUE).value;
 
-    ns.AllObjects.insertData(claseValue, valorValue); 
+    ns.AllObjects.insertData(claseValue, valorValue);
     reloadList();
     reloadOptions();
 }
 
-function removeItem() {    
-    ns.AllObjects.removeData();
+function removeItem() {
+    ns.AllObjects.removeData($("select").value);
     reloadList();
     reloadOptions();
 }
@@ -173,10 +186,11 @@ function createSections() {
 }
 
 function elementsAddSection() {
+    var label;
     ns.ADDSECTION_INPUTS.forEach(function (x) {
         label = addTag("label", "label" + x);
-        label.appendChild(document.createTextNode(x))
-        $(ns.SECTION_1).appendChild(label);       
+        label.appendChild(document.createTextNode(x));
+        $(ns.SECTION_1).appendChild(label);
         $(ns.SECTION_1).appendChild(addTag("input", x));
     });
     $(ns.SECTION_1).appendChild(addTag("button", ns.ADD));
@@ -191,14 +205,14 @@ function elementsRemoveSection() {
     $(ns.TABLE).appendChild(document.createTextNode(ns.TABLE));
 }
 
-function initListeners() {  
-    var config = { attributes: false, childList: true, characterData: false };
-    observer = new MutationObserver(update);
+function initListeners() {
+    var config = { attributes: false, childList: true, characterData: false },
+        observer = new MutationObserver(update);
     observer.observe($("select"), config);
 
     $(ns.ADD).addEventListener("click", addItem, false);
     $(ns.REMOVE).addEventListener("click", removeItem, false);
-    $(ns.TABLE).addEventListener("click", changeContent, false);   
+    $(ns.TABLE).addEventListener("click", changeContent, false);
 }
 
 function createPage() {
