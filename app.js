@@ -40,6 +40,7 @@ function createSelect(id) {
 }
 
 function createSections() {
+    var a;
     ns.SECTION_IDS.forEach(function (x) {
         document.body.appendChild(addTag("section", x));
     });
