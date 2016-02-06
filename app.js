@@ -22,17 +22,40 @@ function AllObjects() {
     this.objects = [];
 }
 
-function TableObject(clase, valor) {
+function OneObject(clase, valor) {
     this.clase = clase;
     this.valor = valor;
 }
 
 AllObjects.prototype.insertData = function(claseValue, valorValue) {
-    this.objects.push(new TableObject(claseValue, valorValue));
+    this.objects.push(new OneObject(claseValue, valorValue));
 }
 
-AllObjects.prototype.removeData = function(items) {
-    this.objects = items;
+AllObjects.prototype.removeData = function() {
+    this.objects = ns.AllObjects.objects.filter(function(x) {
+        return x.clase != $("select").value;
+    });
+}
+
+AllObjects.prototype.arrayUnique = function (attribute) {
+    return this.objects.map(function (x) {
+        return (attribute === ns.CLASS) ? x.clase : x.valor;      
+    }).filter(function (element, index, array) {
+        return array.indexOf(element) === index;
+    });
+};
+
+AllObjects.prototype.numObjects = function (clase, valor) {
+    var num = this.objects.reduce(function (x, y) {
+        return (y.clase === clase && y.valor === valor) ? x + 1 : x;
+    }, 0);
+    return num;
+};
+
+function deleteChilds(section) {
+    Array.from(section.children).forEach(function(x){
+        x.remove();
+    })
 }
 
 function addTag(tag, id) {
@@ -54,8 +77,89 @@ function createSelect(id) {
     return select;
 }
 
+function createTable() {
+    deleteChilds($("sectionTable"));
+    var table = addTag("table", ""),
+        tr = addTag("tr", ""),
+        td = addTag("td", ""),
+        numobj;
+        tr.appendChild(td);
+        table.appendChild(tr);
+        ns.AllObjects.arrayUnique(ns.CLASS).forEach(function (x) {
+            td = addTag("td", "");
+            td.appendChild(textNode(x));
+            tr.appendChild(td);
+        });
+        ns.AllObjects.arrayUnique(ns.VALUE).forEach(function (v) {
+            tr = addTag("tr", "");
+            td = addTag("td", "");
+            td.appendChild(textNode(v));
+            tr.appendChild(td);
+            ns.AllObjects.arrayUnique(ns.CLASS).forEach(function (c) {
+                td = addTag("td", "");
+                numobj = ns.AllObjects.numObjects(c, v);
+                td.appendChild(textNode(numobj));
+                if (numobj < 2) {
+                    td.style.color = globals.COLOR_DOWN;
+                }else if (numobj > 2) {
+                    td.style.color = globals.COLOR_UP;
+                }
+                tr.appendChild(td);
+            });
+            table.appendChild(tr);
+        });
+        $("sectionTable").appendChild(table);    
+}
+
+function createLi(item) {
+    var li = document.createElement("li");
+    li.className = item.clase;
+    li.appendChild(document.createTextNode(item.valor));
+    return li;
+}
+
+function createOption(item) {
+    var option = document.createElement("option");
+    option.value = item;
+    option.appendChild(document.createTextNode(item));
+    return option;
+}
+
+function reloadList() {
+    deleteChilds($(ns.SECTION_2));
+    $(ns.SECTION_2).appendChild(addTag("ul", "list"));
+    ns.AllObjects.objects.forEach(function(x) {
+        $("list").appendChild(createLi(x));
+    });
+}
+
+function reloadOptions() {
+    deleteChilds($("select"));
+    ns.AllObjects.arrayUnique(ns.CLASS).forEach(function(x) {
+        $("select").appendChild(createOption(x));
+    });
+}
+
+function update() {
+    ($("tabla").textContent === "tabla") ? reloadList() : reloadTable();
+}
+
+function addItem() {
+    var claseValue = $(ns.CLASS).value,
+        valorValue = $(ns.VALUE).value;
+
+    ns.AllObjects.insertData(claseValue, valorValue); 
+    reloadList();
+    reloadOptions();
+}
+
+function removeItem() {    
+    ns.AllObjects.removeData();
+    reloadList();
+    reloadOptions();
+}
+
 function createSections() {
-    var a;
     ns.SECTION_IDS.forEach(function (x) {
         document.body.appendChild(addTag("section", x));
     });
@@ -78,65 +182,6 @@ function elementsRemoveSection() {
     $(ns.REMOVE).appendChild(document.createTextNode(ns.REMOVE));
     $(ns.SECTION_3).appendChild(addTag("button", ns.TABLE));
     $(ns.TABLE).appendChild(document.createTextNode(ns.TABLE));
-}
-
-function createLi(item) {
-    var li = document.createElement("li");
-    li.className = item.clase;
-    li.appendChild(document.createTextNode(item.valor));
-    return li;
-}
-
-function createOption(item) {
-    var option = document.createElement("option");
-    option.value = item;
-    option.appendChild(document.createTextNode(item));
-    return option;
-}
-
-function reloadList() {
-    if($(ns.SECTION_2).children.length !== 0) {
-        Array.from($(ns.SECTION_2).children).forEach(function(x) { 
-            x.remove();
-        });
-    }
-    $(ns.SECTION_2).appendChild(addTag("ul", "list"));
-    ns.AllObjects.objects.forEach(function(x) {
-        $("list").appendChild(createLi(x));
-    });
-}
-
-function reloadOptions() {
-    if($("select").children.length !== 0) {
-        Array.from($("select").children).forEach(function(x) { 
-            x.remove();
-        });
-    }
-    ns.AllObjects.objects.map(function(x) {
-        return x.clase;
-    }).filter(function(item, index, array) {
-        return array.indexOf(item) === index;
-    }).forEach(function(x) {
-        $("select").appendChild(createOption(x));
-    });
-}
-
-function addItem() {
-    var claseValue = $(ns.CLASS).value,
-        valorValue = $(ns.VALUE).value;
-
-    ns.AllObjects.insertData(claseValue, valorValue); 
-    reloadList();
-    reloadOptions();
-}
-
-function removeItem() {
-    var objects = ns.AllObjects.objects.filter(function(x) {
-        return x.clase != $("select").value;
-    });
-    ns.AllObjects.removeData(objects);
-    reloadList();
-    reloadOptions();
 }
 
 function initListeners() {        
