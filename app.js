@@ -12,6 +12,8 @@ var ns = (function (ns) {
     ns.REMOVE = "Eliminar";
     ns.TABLE = "Tabla";
     ns.LIST = "Lista";
+    ns.GREEN = "green";
+    ns.RED = "red";
     ns.SECTION_IDS = [ns.SECTION_1, ns.SECTION_2, ns.SECTION_3];
     ns.ADDSECTION_INPUTS = [ns.VALUE, ns.CLASS];
     ns.AllObjects = new AllObjects;
@@ -77,7 +79,7 @@ function createSelect(id) {
     return select;
 }
 
-function createTable() {
+function reloadTable() {
     deleteChilds($("sectionTable"));
     var table = addTag("table", ""),
         tr = addTag("tr", ""),
@@ -87,22 +89,22 @@ function createTable() {
         table.appendChild(tr);
         ns.AllObjects.arrayUnique(ns.CLASS).forEach(function (x) {
             td = addTag("td", "");
-            td.appendChild(textNode(x));
+            td.appendChild(document.createTextNode(x));
             tr.appendChild(td);
         });
         ns.AllObjects.arrayUnique(ns.VALUE).forEach(function (v) {
             tr = addTag("tr", "");
             td = addTag("td", "");
-            td.appendChild(textNode(v));
+            td.appendChild(document.createTextNode(v));
             tr.appendChild(td);
             ns.AllObjects.arrayUnique(ns.CLASS).forEach(function (c) {
                 td = addTag("td", "");
                 numobj = ns.AllObjects.numObjects(c, v);
-                td.appendChild(textNode(numobj));
+                td.appendChild(document.createTextNode(numobj));
                 if (numobj < 2) {
-                    td.style.color = globals.COLOR_DOWN;
+                    td.style.color = ns.GREEN;
                 }else if (numobj > 2) {
-                    td.style.color = globals.COLOR_UP;
+                    td.style.color = ns.RED;
                 }
                 tr.appendChild(td);
             });
@@ -141,7 +143,7 @@ function reloadOptions() {
 }
 
 function update() {
-    ($("tabla").textContent === "tabla") ? reloadList() : reloadTable();
+    ($(ns.TABLE).textContent === ns.TABLE) ? reloadList() : reloadTable();
 }
 
 function addItem() {
@@ -157,6 +159,11 @@ function removeItem() {
     ns.AllObjects.removeData();
     reloadList();
     reloadOptions();
+}
+
+function changeContent() {
+    $(ns.TABLE).textContent = ($(ns.TABLE).textContent === ns.TABLE) ? ns.LIST : ns.TABLE;
+    update();
 }
 
 function createSections() {
@@ -184,9 +191,14 @@ function elementsRemoveSection() {
     $(ns.TABLE).appendChild(document.createTextNode(ns.TABLE));
 }
 
-function initListeners() {        
+function initListeners() {  
+    var config = { attributes: false, childList: true, characterData: false };
+    observer = new MutationObserver(update);
+    observer.observe($("select"), config);
+
     $(ns.ADD).addEventListener("click", addItem, false);
-    $(ns.REMOVE).addEventListener("click", removeItem, false);    
+    $(ns.REMOVE).addEventListener("click", removeItem, false);
+    $(ns.TABLE).addEventListener("click", changeContent, false);   
 }
 
 function createPage() {
