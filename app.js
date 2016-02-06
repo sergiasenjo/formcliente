@@ -92,14 +92,14 @@ function reloadTable() {
             td.appendChild(document.createTextNode(x));
             tr.appendChild(td);
         });
-        ns.AllObjects.arrayUnique(ns.VALUE).forEach(function (v) {
+        ns.AllObjects.arrayUnique(ns.VALUE).forEach(function (valor) {
             tr = addTag("tr", "");
             td = addTag("td", "");
-            td.appendChild(document.createTextNode(v));
+            td.appendChild(document.createTextNode(valor));
             tr.appendChild(td);
-            ns.AllObjects.arrayUnique(ns.CLASS).forEach(function (c) {
+            ns.AllObjects.arrayUnique(ns.CLASS).forEach(function (clase) {
                 td = addTag("td", "");
-                numobj = ns.AllObjects.numObjects(c, v);
+                numobj = ns.AllObjects.numObjects(clase, valor);
                 td.appendChild(document.createTextNode(numobj));
                 if (numobj < 2) {
                     td.style.color = ns.GREEN;
