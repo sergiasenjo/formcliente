@@ -10,16 +10,31 @@ var ns = (function (ns) {
     ns.CLASS = "Clase";
     ns.ADD = "Añadir";
     ns.REMOVE = "Eliminar";
+    ns.TABLE = "Tabla";
+    ns.LIST = "Lista";
     ns.SECTION_IDS = [ns.SECTION_1, ns.SECTION_2, ns.SECTION_3];
     ns.ADDSECTION_INPUTS = [ns.VALUE, ns.CLASS];
-    ns.OBJECTS = [];
+    ns.AllObjects = new AllObjects;
     return ns;
 }({}));
+
+function AllObjects() {
+    this.objects = [];
+}
 
 function TableObject(clase, valor) {
     this.clase = clase;
     this.valor = valor;
 }
+
+AllObjects.prototype.insertData = function(claseValue, valorValue) {
+    this.objects.push(new TableObject(claseValue, valorValue));
+}
+
+AllObjects.prototype.removeData = function(items) {
+    this.objects = items;
+}
+
 function addTag(tag, id) {
     tag = document.createElement(tag);
     tag.id = id;
@@ -61,6 +76,8 @@ function elementsRemoveSection() {
     $(ns.SECTION_3).appendChild(createSelect("select"));
     $(ns.SECTION_3).appendChild(addTag("button", ns.REMOVE));
     $(ns.REMOVE).appendChild(document.createTextNode(ns.REMOVE));
+    $(ns.SECTION_3).appendChild(addTag("button", ns.TABLE));
+    $(ns.TABLE).appendChild(document.createTextNode(ns.TABLE));
 }
 
 function createLi(item) {
@@ -84,7 +101,7 @@ function reloadList() {
         });
     }
     $(ns.SECTION_2).appendChild(addTag("ul", "list"));
-    ns.OBJECTS.forEach(function(x) {
+    ns.AllObjects.objects.forEach(function(x) {
         $("list").appendChild(createLi(x));
     });
 }
@@ -95,7 +112,7 @@ function reloadOptions() {
             x.remove();
         });
     }
-    ns.OBJECTS.map(function(x) {
+    ns.AllObjects.objects.map(function(x) {
         return x.clase;
     }).filter(function(item, index, array) {
         return array.indexOf(item) === index;
@@ -104,27 +121,27 @@ function reloadOptions() {
     });
 }
 
-function addClass() {
+function addItem() {
     var claseValue = $(ns.CLASS).value,
         valorValue = $(ns.VALUE).value;
 
-    ns.OBJECTS.push(new TableObject(claseValue, valorValue));
+    ns.AllObjects.insertData(claseValue, valorValue); 
     reloadList();
     reloadOptions();
 }
 
-function removeClass() {
-    var objects = ns.OBJECTS.filter(function(x) {
+function removeItem() {
+    var objects = ns.AllObjects.objects.filter(function(x) {
         return x.clase != $("select").value;
     });
-    ns.OBJECTS = objects;
+    ns.AllObjects.removeData(objects);
     reloadList();
     reloadOptions();
 }
 
 function initListeners() {        
-    $(ns.ADD).addEventListener("click", addClass, false);
-    $(ns.REMOVE).addEventListener("click", removeClass, false);
+    $(ns.ADD).addEventListener("click", addItem, false);
+    $(ns.REMOVE).addEventListener("click", removeItem, false);    
 }
 
 function createPage() {
