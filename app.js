@@ -1,6 +1,5 @@
 /*jslint
     browser: true, node: true, unparam: true */
-
 /*global
    document, MutationObserver
 */
@@ -63,6 +62,11 @@ AllObjects.prototype.numObjects = function (clase, valor) {
     return num;
 };
 
+function cleanInputs() {
+    $(ns.VALUE).value = "";
+    $(ns.CLASS).value = "";
+}
+
 function deleteChilds(section) {
     Array.from(section.children).forEach(function (x) {
         x.remove();
@@ -89,7 +93,7 @@ function createSelect(id) {
 }
 
 function reloadTable() {
-    deleteChilds($("sectionTable"));
+    deleteChilds($(ns.SECTION_2));
     var table = addTag("table", ""),
         tr = addTag("tr", ""),
         td = addTag("td", ""),
@@ -119,7 +123,7 @@ function reloadTable() {
         });
         table.appendChild(tr);
     });
-    $("sectionTable").appendChild(table);
+    $(ns.SECTION_2).appendChild(table);
 }
 
 function createLi(item) {
@@ -166,12 +170,14 @@ function addItem() {
     ns.AllObjects.insertData(claseValue, valorValue);
     reloadList();
     reloadOptions();
+    cleanInputs();
 }
 
 function removeItem() {
     ns.AllObjects.removeData($("select").value);
     reloadList();
     reloadOptions();
+    cleanInputs();
 }
 
 function changeContent() {
